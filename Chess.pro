@@ -1,20 +1,31 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2014-09-10T00:26:09
-#
-#-------------------------------------------------
+QT              +=  core gui widgets
 
-QT       += core gui
+TARGET          =   Chess
+TEMPLATE        =   app
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+SOURCES         +=  src/main.cpp \
+    src/mainwindow.cpp \
+    src/chessboard.cpp \
+    src/chessmodel.cpp
 
-TARGET = Chess
-TEMPLATE = app
+HEADERS         += \    
+    src/mainwindow.h \
+    src/chessboard.h \
+    src/chessmodel.h
 
 
-SOURCES += main.cpp\
-        mainwindow.cpp
+LIBS            +=  -stdlib=libc++ -L/usr/lib -L/usr/local/lib
+QMAKE_CXXFLAGS  +=  -std=c++11 -O2
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
-HEADERS  += mainwindow.h
+OBJECTS_DIR     =   build
+MOC_DIR         =   build
+RCC_DIR         =   build
 
-FORMS    += mainwindow.ui
+INCLUDEPATH     +=  /usr/local/include /usr/include
+
+RESOURCES       +=  
+
+ICON            =   
+
+FORMS +=
