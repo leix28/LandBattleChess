@@ -9,6 +9,11 @@ ChessBoard::ChessBoard(QWidget *parent) :
     piece.clear();
 }
 
+void ChessBoard::changeStatus(ChessModel::ChessStatus status)
+{
+    piece = status;
+}
+
 void ChessBoard::paintEvent(QPaintEvent *event)
 {
     QWidget::paintEvent(event);

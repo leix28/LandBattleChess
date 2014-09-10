@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>create.icns</file>
+        <file>join.icns</file>
+    </qresource>
+</RCC>

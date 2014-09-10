@@ -24,8 +24,12 @@ RCC_DIR         =   build
 
 INCLUDEPATH     +=  /usr/local/include /usr/include
 
-RESOURCES       +=  
+RESOURCES       += \  
+    resource/resource.qrc
 
 ICON            =   
 
 FORMS +=
+
+OTHER_FILES += \
+    resource/join.icns

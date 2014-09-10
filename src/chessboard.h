@@ -9,10 +9,11 @@ class ChessBoard : public QWidget
 {
     Q_OBJECT
 
-    QVector< QPair< QPair<int, int>, int> > piece;
+    ChessModel::ChessStatus piece;
 
 public:
     explicit ChessBoard(QWidget *parent = 0);
+    void changeStatus(ChessModel::ChessStatus status);
 
 protected:
     void paintEvent(QPaintEvent *event);
