@@ -1,6 +1,7 @@
 #include "chessboard.h"
 #include <QPainter>
 #include <QBrush>
+#include <QMouseEvent>
 
 ChessBoard::ChessBoard(QWidget *parent) :
     QWidget(parent)
@@ -20,10 +21,10 @@ void ChessBoard::paintEvent(QPaintEvent *event)
 
     if (width() < 400 || height() < 600) return;
 
-    double wid = (double)width() / 6;
-    double hei = (double)height() / 14;
-    double btnwid = wid * 0.3;
-    double btnhei = hei * 0.3;
+    wid = (double)width() / 6;
+    hei = (double)height() / 14;
+    btnwid = wid * 0.3;
+    btnhei = hei * 0.3;
 
     QPainter painter(this);
 
@@ -117,4 +118,13 @@ void ChessBoard::paintEvent(QPaintEvent *event)
                              Qt::AlignCenter, ChessModel::pieceName[-itm.second]);
         }
     }
+}
+
+void ChessBoard::mousePressEvent(QMouseEvent *event)
+{
+    QWidget::mousePressEvent(event);
+    for (int i = 1; i <= 13; i++)
+        for (int j = 1; j <= 5; j++)
+            if (QRect(j * wid - btnwid * 1.2, i * hei - btnhei * 1.2, 2.4 * btnwid, 2.4 * btnhei).contains(event->pos()))
+                emit clickPiece(qMakePair(i, j));
 }

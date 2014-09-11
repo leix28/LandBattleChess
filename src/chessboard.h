@@ -10,6 +10,7 @@ class ChessBoard : public QWidget
     Q_OBJECT
 
     ChessModel::ChessStatus piece;
+    double wid, hei, btnwid, btnhei;
 
 public:
     explicit ChessBoard(QWidget *parent = 0);
@@ -17,9 +18,10 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event);
+    void mousePressEvent(QMouseEvent *event);
 
 signals:
-
+    void clickPiece(QPair<int, int> pos);
 public slots:
 
 };

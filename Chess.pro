@@ -6,12 +6,14 @@ TEMPLATE        =   app
 SOURCES         +=  src/main.cpp \
     src/mainwindow.cpp \
     src/chessboard.cpp \
-    src/chessmodel.cpp
+    src/chessmodel.cpp \
+    src/ezsocket.cpp
 
 HEADERS         += \    
     src/mainwindow.h \
     src/chessboard.h \
-    src/chessmodel.h
+    src/chessmodel.h \
+    src/ezsocket.h
 
 
 LIBS            +=  -stdlib=libc++ -L/usr/lib -L/usr/local/lib
@@ -31,5 +33,3 @@ ICON            =
 
 FORMS +=
 
-OTHER_FILES += \
-    resource/join.icns
