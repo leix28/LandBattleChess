@@ -42,5 +42,35 @@ ChessModel::ChessStatus ChessModel::getStatus(char player)
             ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -13));
         }
     }
+    if (player == 'A') {
+        for (int i = 0; i < ret.size(); i++) {
+            ret[i].first.first = 14 - ret[i].first.first;
+            ret[i].first.second = 6 - ret[i].first.second;
+        }
+    }
     return ret;
+}
+
+void ChessModel::movePiece(char player, QPair<int, int> st, QPair<int, int> ed)
+{
+    if (player == 'A') {
+        st.first = 14 - st.first;
+        st.second = 6 - st.second;
+
+        ed.first = 14 - ed.first;
+        ed.second = 6 - ed.second;
+    }
+    if (player == 'A') {
+        for (int i = 0; i < 25; i++) {
+            if (posA[i] == st) {
+                posA[i] = ed;
+            }
+        }
+    } else {
+        for (int i = 0; i < 25; i++) {
+            if (posB[i] == st) {
+                posB[i] = ed;
+            }
+        }
+    }
 }

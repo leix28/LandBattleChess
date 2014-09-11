@@ -16,9 +16,11 @@ class MainWindow : public QMainWindow
 
     ChessBoard *chessBoard;
     ChessModel chessModel;
+    QAction *createAction, *joinAction, *abortAction;
     EzServer server;
     EzClient client;
     char player;
+    QPair<int, int> lastPos;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -28,8 +30,9 @@ signals:
 public slots:
     void createGame();
     void joinGame();
+    void abortLink();
     void handleClick(QPair<int, int> pos);
-    void handleReceive(void* bufv, int len);
+    void handleReceive(void* buf, int len);
 
 };
 

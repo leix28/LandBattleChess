@@ -13,6 +13,7 @@ ChessBoard::ChessBoard(QWidget *parent) :
 void ChessBoard::changeStatus(ChessModel::ChessStatus status)
 {
     piece = status;
+    update();
 }
 
 void ChessBoard::paintEvent(QPaintEvent *event)

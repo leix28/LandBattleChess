@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>create.icns</file>
         <file>join.icns</file>
+        <file>abort.icns</file>
     </qresource>
 </RCC>

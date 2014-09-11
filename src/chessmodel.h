@@ -19,7 +19,7 @@ public:
     const static QString pieceName[14];
     const static int pieceType[25];
     ChessStatus getStatus(char player);
-
+    void movePiece(char player, QPair<int, int> st, QPair<int, int> ed);
 };
 
 #endif // CHESSMODEL_H

@@ -102,11 +102,15 @@ bool EzServer::closeServer()
 void EzClient::run()
 {
     //QThread::run();
-    char buf[bufSize];
+
     while (true) {
+        char *buf = new char[bufSize];
         memset(buf, 0, bufSize);
         int ret = recv(localSocket, buf, bufSize, 0);
-        if (ret == 0 || ret == -1) break;
+        if (ret == 0 || ret == -1) {
+            delete buf;
+            break;
+        }
         emit received((void*)buf, ret);
     }
 }
