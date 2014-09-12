@@ -1,4 +1,7 @@
 #include "chessmodel.h"
+#include <QQueue>
+#include <QSet>
+#include <QDebug>
 
 const QString ChessModel::pieceName[14] = {"", "司令", "军长", "师长", "旅长",
                                            "团长", "营长", "连长", "排长", "工兵",
@@ -8,8 +11,43 @@ const int ChessModel::pieceType[25] = {1, 2, 3, 3, 4, 4, 5, 5, 6, 6,
                                        7, 7, 7, 8, 8, 8, 9, 9, 9,
                                        10, 10, 10, 11, 11, 12};
 
+const int ChessModel::dx[4] = {0, 1, 0, -1};
+const int ChessModel::dy[4] = {1, 0, -1, 0};
+
+int ChessModel::getChessId(char player, QPair<int, int> pos) const
+{
+    for (int i = 0; i < 25; i++) {
+        if (player == 'A' && posA[i] == pos)
+            return i;
+        if (player == 'B' && posB[i] == pos)
+            return i;
+    }
+    return -1;
+}
+
+bool ChessModel::isHouse(QPair<int, int> pos) const
+{
+    if ((pos.first == 3 || pos.first == 5 || pos.first == 9 || pos.first == 11) &&
+            (pos.second == 2 || pos.second == 4)) return 1;
+    if ((pos.first == 4 || pos.first == 10) && pos.second == 3) return 1;
+    return 0;
+}
+
+bool ChessModel::isRail(QPair<int, int> pos) const
+{
+    if (pos.first < 1 || pos.first > 13 || pos.second < 1 || pos.second > 5) return 0;
+    if (pos.first == 2 || pos.first == 6 || pos.first == 8 || pos.first == 12) return 1;
+    if ((2 <= pos.first && pos.first <= 12) && (pos.second == 1 || pos.second == 5)) return 1;
+    if ((6 <= pos.first && pos.first <= 8) && (pos.second == 3)) return 1;
+    return 0;
+}
+
 ChessModel::ChessModel()
 {
+    initStatus();
+}
+
+void ChessModel::initStatus() {
     posA[24] = qMakePair(1, 2);
     int p = 23;
     for (int i = 1; i <= 6; i++)
@@ -31,7 +69,7 @@ ChessModel::ChessModel()
         }
 }
 
-ChessModel::ChessStatus ChessModel::getStatus(char player)
+ChessModel::ChessStatus ChessModel::getStatus(char player) const
 {
     ChessStatus ret;
     for (int i = 0; i < 25; i++) {
@@ -61,16 +99,108 @@ void ChessModel::movePiece(char player, QPair<int, int> st, QPair<int, int> ed)
         ed.second = 6 - ed.second;
     }
     if (player == 'A') {
-        for (int i = 0; i < 25; i++) {
-            if (posA[i] == st) {
-                posA[i] = ed;
-            }
+        int x = getChessId('A', st), y = getChessId('B', ed);
+        posA[x] = ed;
+        if (x != -1 && y != -1) {
+            if (win(x, y))
+                posB[y] = qMakePair(0, 0);
+            else if (win(y, x))
+                posA[x] = qMakePair(0, 0);
         }
     } else {
-        for (int i = 0; i < 25; i++) {
-            if (posB[i] == st) {
-                posB[i] = ed;
-            }
+        int x = getChessId('A', ed), y = getChessId('B', st);
+        posB[y] = ed;
+        if (x != -1 && y != -1) {
+            if (win(x, y))
+                posB[y] = qMakePair(0, 0);
+            else if (win(y, x))
+                posA[x] = qMakePair(0, 0);
         }
     }
+}
+
+bool ChessModel::isMovable(char player, QPair<int, int> st, QPair<int, int> ed) const
+{
+    if (player == 'A') {
+        st.first = 14 - st.first;
+        st.second = 6 - st.second;
+        ed.first = 14 - ed.first;
+        ed.second = 6 - ed.second;
+    }
+    if (getChessId(player, ed) != -1) return 0;
+    if (getChessId(player, st) == -1) return 0;
+
+    if (ed.first == 7  && (ed.second == 2 || ed.second == 4)) return 0;
+    if ((st.first == 1 || st.first == 13) && (st.second == 2 || st.second == 4)) return 0;
+    int dis = abs(st.first - ed.first) + abs(st.second - ed.second);
+    if (dis == 1) return 1;
+    if (dis == 2 && (isHouse(st) || isHouse(ed))) return 1;
+
+    if (isRail(st) && isRail(ed)) {
+        if (st.first == ed.first) {
+            bool flag = 1;
+            for (int i = qMin(st.second, ed.second) + 1; i <= qMax(st.second, ed.second) - 1; i++)
+                if (getChessId('A', qMakePair(st.first, i)) != -1 || getChessId('B', qMakePair(st.first, i)) != -1)
+                    flag = 0;
+            if (flag) return 1;
+        }
+        if (st.second == ed.second) {
+            bool flag = 1;
+            for (int i = qMin(st.first, ed.first) + 1; i <= qMax(st.first, ed.first) - 1; i++)
+                if (getChessId('A', qMakePair(i, st.second)) != -1 || getChessId('B', qMakePair(i, st.second)) != -1)
+                    flag = 0;
+            if (flag) return 1;
+        }
+        int pt = pieceType[getChessId(player, st)];
+        if (pt != 9) return 0;
+        QQueue< QPair<int, int> > queue;
+        QSet< QPair<int, int> > set;
+        queue.push_back(st);
+        while (!queue.empty()) {
+            QPair<int, int> now = queue.front();
+            queue.pop_front();
+            for (int i = 0; i < 4; i++) {
+                QPair<int, int> tmp = now;
+                tmp.first += dx[i];
+                tmp.second += dy[i];
+                if (isRail(tmp) && getChessId('A', tmp) == -1 && getChessId('B', tmp) == -1 && set.find(tmp) == set.end()) {
+                    queue.push_back(tmp);
+                    set.insert(tmp);
+                }
+            }
+        }
+        for (auto itm : set) {
+            if (qAbs(itm.first - ed.first) + qAbs(itm.second - ed.second) <= 1)
+                return 1;
+        }
+    }
+    return 0;
+}
+
+bool ChessModel::isOwner(char player, QPair<int, int> pos) const
+{
+    if (player == 'A') {
+        pos.first = 14 - pos.first;
+        pos.second = 6 - pos.second;
+    }
+    for (int i = 0; i < 25; i++) {
+        if (player == 'A' && posA[i] == pos)
+            return 1;
+        if (player == 'B' && posB[i] == pos)
+            return 1;
+    }
+    return 0;
+}
+
+bool ChessModel::win(int x, int y) const
+{
+    x = pieceType[x];
+    y = pieceType[y];
+    if (x == 12) return 0;
+    if (x == 11) return 0;
+    if (y == 12) return 1;
+    if (y == 11) return 0;
+    if (y == 10) return x == 9;
+    if (x == 10) return y != 9;
+    return x < y;
 }

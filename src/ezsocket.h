@@ -31,6 +31,7 @@ public:
 
 signals:
     void received(void *buf, int len);
+    void connected();
 };
 
 class EzClient : public QThread

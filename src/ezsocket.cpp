@@ -8,6 +8,7 @@ void EzServer::run()
     sockaddr_in clientAddr;
     int clientAddrLen = sizeof(clientAddr);
     clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, (socklen_t*)&clientAddrLen);
+    emit connected();
     if (clientSocket == -1) return;
 
     while (true) {
