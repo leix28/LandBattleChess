@@ -78,6 +78,8 @@ void ChessModel::initStatus() {
             if (i== 10 && j == 3) continue;
             posB[p--] = qMakePair(i, j);
         }
+    for (int i = 0; i < 25; i++)
+        guessA[i] = guessB[i] = 13;
 }
 
 ChessModel::ChessStatus ChessModel::getStatus(char player) const
@@ -85,12 +87,12 @@ ChessModel::ChessStatus ChessModel::getStatus(char player) const
     ChessStatus ret;
     for (int i = 0; i < 25; i++) {
         if (posA[i].first && posA[i].second) {
-            //ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -13));
-            ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -pieceType[i]));
+            ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -guessA[i]));
+            //ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -pieceType[i]));
                     }
         if (posB[i].first && posB[i].second) {
-            //ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -13));
-            ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -pieceType[i]));
+            ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -guessB[i]));
+            //ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -pieceType[i]));
         }
     }
     if (player == 'A') {
@@ -295,4 +297,27 @@ bool ChessModel::isWin(char player)
             }
         return 1;
     }
+}
+
+void ChessModel::guess(char player, QPair<int, int> pos, int type)
+{
+    if (player == 'A') {
+        pos.first = 14 - pos.first;
+        pos.second = 6 - pos.second;
+    }
+    int id = getChessId('A' + 'B' - player, pos);
+    if (player)
+        guessA[id] = type;
+    else
+        guessB[id] = type;
+}
+
+void ChessModel::setGuess(char player, ChessModel model)
+{
+    if (player == 'A')
+        for (int i = 0; i < 25; i++)
+            guessB[i] = model.guessB[i];
+    if (player == 'B')
+        for (int i = 0; i < 25; i++)
+            guessA[i] = model.guessA[i];
 }

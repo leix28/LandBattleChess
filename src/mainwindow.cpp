@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "guessdialog.h"
 #include <QMenuBar>
 #include <QToolBar>
 #include <QStatusBar>
@@ -7,8 +8,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    server(500, this),
-    client(500, this)
+    server(1000, this),
+    client(1000, this)
 {
     setMenuBar(new QMenuBar(this));
     QMenu *gameMenu = new QMenu("Game", menuBar());
@@ -51,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(joinAction, SIGNAL(triggered()), this, SLOT(joinGame()));
     QObject::connect(abortAction, SIGNAL(triggered()), this, SLOT(abortLink()));
     QObject::connect(chessBoard, SIGNAL(clickPiece(QPair<int,int>)), this, SLOT(handleClick(QPair<int, int>)));
+    QObject::connect(chessBoard, SIGNAL(rightClickPiece(QPair<int, int>)), this, SLOT(handleRightClick(QPair<int, int>)));
     QObject::connect(&server, SIGNAL(received(void*, int)), this, SLOT(handleReceive(void*, int)));
     QObject::connect(&server, SIGNAL(connected()), this, SLOT(handleConnected()));
     QObject::connect(&client, SIGNAL(received(void*,int)), this, SLOT(handleReceive(void*, int)));
@@ -172,6 +174,27 @@ void MainWindow::handleClick(QPair<int, int> pos)
     }
 }
 
+void MainWindow::handleRightClick(QPair<int, int> pos)
+{
+    QPair<int, int> tt = pos;
+    tt.first = 14 - tt.first;
+    tt.second = 6 - tt.second;
+    if (chessModel.isOwner('A' + 'B' - player, tt)) {
+        int type = GuessDialog::getGuess(this);
+        if (type != 0 && type != 13)
+            chessModel.guess(player, pos, type);
+        chessBoard->changeStatus(chessModel.getStatus(player));
+        char buf[sizeof(ChessModel) + 1];
+        buf[0] = player - 'A' + 'a';
+        memcpy(buf + 1, &chessModel, sizeof(ChessModel));
+        if (player == 'A') {
+            server.sendData(buf, sizeof(ChessModel) + 1);
+        } else {
+            client.sendData(buf, sizeof(ChessModel) + 1);
+        }
+    }
+}
+
 void MainWindow::handleReceive(void *bufv, int len)
 {
     char *buf = (char*)bufv;
@@ -202,6 +225,10 @@ void MainWindow::handleReceive(void *bufv, int len)
         } else {
             statusBar()->showMessage("Your Opponent is Ready");
         }
+    } else if (buf[0] == 'a' || buf[0] == 'b') {
+        ChessModel now;
+        memcpy(&now, buf + 1, sizeof(ChessModel));
+        chessModel.setGuess(buf[0] - 'a' + 'A', now);
     }
     delete buf;
 }

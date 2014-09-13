@@ -7,13 +7,15 @@ SOURCES         +=  src/main.cpp \
     src/mainwindow.cpp \
     src/chessboard.cpp \
     src/chessmodel.cpp \
-    src/ezsocket.cpp
+    src/ezsocket.cpp \
+    src/guessdialog.cpp
 
 HEADERS         += \    
     src/mainwindow.h \
     src/chessboard.h \
     src/chessmodel.h \
-    src/ezsocket.h
+    src/ezsocket.h \
+    src/guessdialog.h
 
 
 LIBS            +=  -stdlib=libc++ -L/usr/lib -L/usr/local/lib

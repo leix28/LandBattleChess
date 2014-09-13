@@ -14,6 +14,7 @@ class ChessModel
     const static int dy[8];
     QPair<int, int> posA[25];
     QPair<int, int> posB[25];
+    int guessA[25], guessB[25];
     int getChessId(char player, QPair<int, int> pos) const;
     bool isHouse(QPair<int, int> pos) const ;
     bool isRail(QPair<int, int> pos) const;
@@ -34,6 +35,8 @@ public:
     bool isSwapable(char player, QPair<int, int> st, QPair<int, int> ed) const;
     void setStatus(char player, ChessModel model);
     bool isWin(char player);
+    void guess(char player, QPair<int, int> pos, int type);
+    void setGuess(char player, ChessModel model);
 };
 
 #endif // CHESSMODEL_H

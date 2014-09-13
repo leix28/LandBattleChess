@@ -22,6 +22,7 @@ protected:
 
 signals:
     void clickPiece(QPair<int, int> pos);
+    void rightClickPiece(QPair<int, int> pos);
 public slots:
 
 };
