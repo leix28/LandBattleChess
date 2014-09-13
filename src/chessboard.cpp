@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QBrush>
 #include <QMouseEvent>
+#include <QDebug>
 
 ChessBoard::ChessBoard(QWidget *parent) :
     QWidget(parent)
@@ -127,9 +128,7 @@ void ChessBoard::mousePressEvent(QMouseEvent *event)
     for (int i = 1; i <= 13; i++)
         for (int j = 1; j <= 5; j++)
             if (QRect(j * wid - btnwid * 1.2, i * hei - btnhei * 1.2, 2.4 * btnwid, 2.4 * btnhei).contains(event->pos())) {
-                if (event->button() == Qt::LeftButton)
-                    emit clickPiece(qMakePair(i, j));
-                if (event->button() == Qt::RightButton)
-                    emit rightClickPiece(qMakePair(i, j));
+                emit clickPiece(qMakePair(i, j));
+                return;
             }
 }

@@ -5,6 +5,8 @@
 #include <QStatusBar>
 #include <QDebug>
 #include <QMessageBox>
+#include <QInputDialog>
+#include <cstring>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -52,7 +54,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(joinAction, SIGNAL(triggered()), this, SLOT(joinGame()));
     QObject::connect(abortAction, SIGNAL(triggered()), this, SLOT(abortLink()));
     QObject::connect(chessBoard, SIGNAL(clickPiece(QPair<int,int>)), this, SLOT(handleClick(QPair<int, int>)));
-    QObject::connect(chessBoard, SIGNAL(rightClickPiece(QPair<int, int>)), this, SLOT(handleRightClick(QPair<int, int>)));
     QObject::connect(&server, SIGNAL(received(void*, int)), this, SLOT(handleReceive(void*, int)));
     QObject::connect(&server, SIGNAL(connected()), this, SLOT(handleConnected()));
     QObject::connect(&client, SIGNAL(received(void*,int)), this, SLOT(handleReceive(void*, int)));
@@ -63,9 +64,15 @@ void MainWindow::createGame()
 {
     isStart = 0;
     lastPos = qMakePair(0, 0);
+
+    QString ret = QInputDialog::getText(this, QString("IP"), QString("Local IP: "), QLineEdit::Normal, QString("127.0.0.1"));
+    char buf[20];
+    memset(buf, 0, sizeof(buf));
+    for (int i = 0; i < ret.size(); i++)
+        buf[i] = ret[i].unicode();
     if (server.closeServer() &&
             client.closeClient() &&
-            server.initServer((char*)"127.0.0.1", 4321) &&
+            server.initServer(buf, 4321) &&
             server.startServer()) {
         statusBar()->showMessage("Server Created.");
         createAction->setEnabled(0);
@@ -81,9 +88,15 @@ void MainWindow::joinGame()
 {
     isStart = 0;
     lastPos = qMakePair(0, 0);
+
+    QString ret = QInputDialog::getText(this, QString("IP"), QString("Server IP: "), QLineEdit::Normal, QString("127.0.0.1"));
+            char buf[20];
+    memset(buf, 0, sizeof(buf));
+    for (int i = 0; i < ret.size(); i++)
+        buf[i] = ret[i].unicode();
     if (server.closeServer() &&
             client.closeClient() &&
-            client.connectServer((char*)"127.0.0.1", 4321)) {
+            client.connectServer(buf, 4321)) {
         statusBar()->showMessage("Server connected.");
         createAction->setEnabled(0);
         joinAction->setEnabled(0);
@@ -107,6 +120,23 @@ void MainWindow::abortLink()
 void MainWindow::handleClick(QPair<int, int> pos)
 {
     if (isStart) {
+        QPair<int, int> tt = pos;
+        tt.first = 14 - tt.first;
+        tt.second = 6 - tt.second;
+        if ((!lastPos.first || !lastPos.second) && chessModel.isOwner('A' + 'B' - player, tt)) {
+            int type = GuessDialog::getGuess(this);
+            if (type != 0 && type != 13)
+                chessModel.guess(player, pos, type);
+            chessBoard->changeStatus(chessModel.getStatus(player));
+            char buf[sizeof(ChessModel) + 1];
+            buf[0] = player - 'A' + 'a';
+            memcpy(buf + 1, &chessModel, sizeof(ChessModel));
+            if (player == 'A') {
+                server.sendData(buf, sizeof(ChessModel) + 1);
+            } else {
+                client.sendData(buf, sizeof(ChessModel) + 1);
+            }
+        }
         if (isWaiting) return;
         if (lastPos.first && lastPos.second) {
             if (chessModel.isMovable(player, lastPos, pos)) {
@@ -170,27 +200,6 @@ void MainWindow::handleClick(QPair<int, int> pos)
                 lastPos = qMakePair(0, 0);
                 statusBar()->showMessage(QString("Please Organize Your Chess Pieces"));
             }
-        }
-    }
-}
-
-void MainWindow::handleRightClick(QPair<int, int> pos)
-{
-    QPair<int, int> tt = pos;
-    tt.first = 14 - tt.first;
-    tt.second = 6 - tt.second;
-    if (chessModel.isOwner('A' + 'B' - player, tt)) {
-        int type = GuessDialog::getGuess(this);
-        if (type != 0 && type != 13)
-            chessModel.guess(player, pos, type);
-        chessBoard->changeStatus(chessModel.getStatus(player));
-        char buf[sizeof(ChessModel) + 1];
-        buf[0] = player - 'A' + 'a';
-        memcpy(buf + 1, &chessModel, sizeof(ChessModel));
-        if (player == 'A') {
-            server.sendData(buf, sizeof(ChessModel) + 1);
-        } else {
-            client.sendData(buf, sizeof(ChessModel) + 1);
         }
     }
 }

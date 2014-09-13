@@ -306,7 +306,7 @@ void ChessModel::guess(char player, QPair<int, int> pos, int type)
         pos.second = 6 - pos.second;
     }
     int id = getChessId('A' + 'B' - player, pos);
-    if (player)
+    if (player == 'B')
         guessA[id] = type;
     else
         guessB[id] = type;

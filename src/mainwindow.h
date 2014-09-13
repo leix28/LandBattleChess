@@ -33,7 +33,6 @@ public slots:
     void joinGame();
     void abortLink();
     void handleClick(QPair<int, int> pos);
-    void handleRightClick(QPair<int, int> pos);
     void handleReceive(void* bufv, int len);
     void handleConnected();
     void startGame();
