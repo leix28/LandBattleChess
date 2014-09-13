@@ -11,8 +11,8 @@ const int ChessModel::pieceType[25] = {1, 2, 3, 3, 4, 4, 5, 5, 6, 6,
                                        7, 7, 7, 8, 8, 8, 9, 9, 9,
                                        10, 10, 10, 11, 11, 12};
 
-const int ChessModel::dx[4] = {0, 1, 0, -1};
-const int ChessModel::dy[4] = {1, 0, -1, 0};
+const int ChessModel::dx[8] = {0, 1, 0, -1, 1, -1, 1, -1};
+const int ChessModel::dy[8] = {1, 0, -1, 0, 1, -1, -1, 1};
 
 int ChessModel::getChessId(char player, QPair<int, int> pos) const
 {
@@ -40,6 +40,17 @@ bool ChessModel::isRail(QPair<int, int> pos) const
     if ((2 <= pos.first && pos.first <= 12) && (pos.second == 1 || pos.second == 5)) return 1;
     if ((6 <= pos.first && pos.first <= 8) && (pos.second == 3)) return 1;
     return 0;
+}
+
+bool ChessModel::checkPos(int piece, QPair<int, int> pos) const
+{
+    if (piece == 12)
+        return (pos.first == 1 || pos.first == 13) && (pos.second == 2 || pos.second == 4);
+    if (piece == 11)
+        return pos.first != 6 && pos.first != 8;
+    if (piece == 10)
+        return pos.first <= 2 || pos.first >= 11;
+    return 1;
 }
 
 ChessModel::ChessModel()
@@ -74,10 +85,12 @@ ChessModel::ChessStatus ChessModel::getStatus(char player) const
     ChessStatus ret;
     for (int i = 0; i < 25; i++) {
         if (posA[i].first && posA[i].second) {
-            ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -13));
-        }
+            //ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -13));
+            ret.push_back(qMakePair(posA[i], player == 'A' ? pieceType[i] : -pieceType[i]));
+                    }
         if (posB[i].first && posB[i].second) {
-            ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -13));
+            //ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -13));
+            ret.push_back(qMakePair(posB[i], player == 'B' ? pieceType[i] : -pieceType[i]));
         }
     }
     if (player == 'A') {
@@ -102,19 +115,19 @@ void ChessModel::movePiece(char player, QPair<int, int> st, QPair<int, int> ed)
         int x = getChessId('A', st), y = getChessId('B', ed);
         posA[x] = ed;
         if (x != -1 && y != -1) {
-            if (win(x, y))
-                posB[y] = qMakePair(0, 0);
-            else if (win(y, x))
+            if (!win(x, y))
                 posA[x] = qMakePair(0, 0);
+            if (!win(y, x))
+                posB[x] = qMakePair(0, 0);
         }
     } else {
         int x = getChessId('A', ed), y = getChessId('B', st);
         posB[y] = ed;
         if (x != -1 && y != -1) {
-            if (win(x, y))
-                posB[y] = qMakePair(0, 0);
-            else if (win(y, x))
+            if (!win(x, y))
                 posA[x] = qMakePair(0, 0);
+            if (!win(y, x))
+                posB[y] = qMakePair(0, 0);
         }
     }
 }
@@ -127,12 +140,19 @@ bool ChessModel::isMovable(char player, QPair<int, int> st, QPair<int, int> ed) 
         ed.first = 14 - ed.first;
         ed.second = 6 - ed.second;
     }
+    if (st.first < 1 || st.first > 13 || st.second < 1 || st.second > 5 ||
+            ed.first < 1 || ed.first > 13 || ed.second < 1 || ed.second > 5) return 0;
     if (getChessId(player, ed) != -1) return 0;
     if (getChessId(player, st) == -1) return 0;
+    if (isHouse(ed) && (getChessId('A' + 'B' - player, ed) != -1)) return 0;
+
+    int pt = pieceType[getChessId(player, st)];
+    if (pt == 10 || pt == 12) return 0;
 
     if (ed.first == 7  && (ed.second == 2 || ed.second == 4)) return 0;
     if ((st.first == 1 || st.first == 13) && (st.second == 2 || st.second == 4)) return 0;
     int dis = abs(st.first - ed.first) + abs(st.second - ed.second);
+
     if (dis == 1) return 1;
     if (dis == 2 && (isHouse(st) || isHouse(ed))) return 1;
 
@@ -151,7 +171,6 @@ bool ChessModel::isMovable(char player, QPair<int, int> st, QPair<int, int> ed) 
                     flag = 0;
             if (flag) return 1;
         }
-        int pt = pieceType[getChessId(player, st)];
         if (pt != 9) return 0;
         QQueue< QPair<int, int> > queue;
         QSet< QPair<int, int> > set;
@@ -203,4 +222,77 @@ bool ChessModel::win(int x, int y) const
     if (y == 10) return x == 9;
     if (x == 10) return y != 9;
     return x < y;
+}
+
+void ChessModel::swapPiece(char player, QPair<int, int> st, QPair<int, int> ed)
+{
+    if (player == 'A') {
+        st.first = 14 - st.first;
+        st.second = 6 - st.second;
+        ed.first = 14 - ed.first;
+        ed.second = 6 - ed.second;
+    }
+    int x = getChessId(player, st), y = getChessId(player, ed);
+    if (player == 'A')
+        qSwap(posA[x], posA[y]);
+    else
+        qSwap(posB[x], posB[y]);
+}
+
+bool ChessModel::isSwapable(char player, QPair<int, int> st, QPair<int, int> ed) const
+{
+    if (player == 'A') {
+        st.first = 14 - st.first;
+        st.second = 6 - st.second;
+        ed.first = 14 - ed.first;
+        ed.second = 6 - ed.second;
+    }
+    int x = getChessId(player, st), y = getChessId(player, ed);
+    if (x == -1 || y == -1) return 0;
+    return checkPos(pieceType[x], ed) && checkPos(pieceType[y], st);
+}
+
+void ChessModel::setStatus(char player, ChessModel model)
+{
+    if (player == 'A')
+        for (int i = 0; i < 25; i++)
+            posA[i] = model.posA[i];
+    if (player == 'B')
+        for (int i = 0; i < 25; i++)
+            posB[i] = model.posB[i];
+}
+
+bool ChessModel::isWin(char player)
+{
+    if (player == 'A') {
+        if (!posB[24].first || !posB[24].second) {
+            return 1;
+        }
+        for (int i = 0; i < 25; i++)
+            for (int j = 0; j < 8; j++) {
+                QPair<int, int> tmp = posB[i];
+                tmp.first += dx[j];
+                tmp.second += dy[j];
+                if (isMovable('B', posB[i], tmp)) return 0;
+            }
+        return 1;
+    } else {
+        if (!posA[24].first || !posA[24].second) {
+            qDebug() << "FAIL";
+            return 1;
+        }
+        for (int i = 0; i < 25; i++)
+            for (int j = 0; j < 8; j++) {
+                QPair<int, int> tmp = posA[i], tt;
+                tt = posA[i];
+                tt.first = 14 - tt.first;
+                tt.second = 6 - tt.second;
+                tmp.first += dx[j];
+                tmp.second += dy[j];
+                tmp.first = 14 - tmp.first;
+                tmp.second = 6 - tmp.second;
+                if (isMovable('A', tt, tmp)) return 0;
+            }
+        return 1;
+    }
 }

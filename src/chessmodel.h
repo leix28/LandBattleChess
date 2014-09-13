@@ -10,13 +10,14 @@
 //first-Row second-Column
 class ChessModel
 {
-    const static int dx[4];
-    const static int dy[4];
+    const static int dx[8];
+    const static int dy[8];
     QPair<int, int> posA[25];
     QPair<int, int> posB[25];
     int getChessId(char player, QPair<int, int> pos) const;
     bool isHouse(QPair<int, int> pos) const ;
     bool isRail(QPair<int, int> pos) const;
+    bool checkPos(int piece, QPair<int, int> pos) const;
 
 public:
     typedef QVector< QPair< QPair<int, int>, int > > ChessStatus;
@@ -29,6 +30,10 @@ public:
     bool isMovable(char player, QPair<int, int> st, QPair<int, int> ed) const;
     bool isOwner(char player, QPair<int, int> pos) const;
     bool win(int x, int y) const;
+    void swapPiece(char player, QPair<int, int> st, QPair<int, int> ed);
+    bool isSwapable(char player, QPair<int, int> st, QPair<int, int> ed) const;
+    void setStatus(char player, ChessModel model);
+    bool isWin(char player);
 };
 
 #endif // CHESSMODEL_H

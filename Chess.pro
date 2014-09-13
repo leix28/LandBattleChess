@@ -17,7 +17,7 @@ HEADERS         += \
 
 
 LIBS            +=  -stdlib=libc++ -L/usr/lib -L/usr/local/lib
-QMAKE_CXXFLAGS  +=  -std=c++11 -O2
+QMAKE_CXXFLAGS  +=  -std=c++11 #-O2
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 
 OBJECTS_DIR     =   build

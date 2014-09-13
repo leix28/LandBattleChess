@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow
     EzClient client;
     char player;
     QPair<int, int> lastPos;
-    bool isStart;
+    bool isStart, isWaiting;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -35,6 +35,7 @@ public slots:
     void handleClick(QPair<int, int> pos);
     void handleReceive(void* bufv, int len);
     void handleConnected();
+    void startGame();
 };
 
 #endif // MAINWINDOW_H

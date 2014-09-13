@@ -3,6 +3,7 @@
 #include <QToolBar>
 #include <QStatusBar>
 #include <QDebug>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -41,7 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QVBoxLayout *rightLayout = new QVBoxLayout();
     mainLayout->addLayout(rightLayout);
-
+    QPushButton *startButton = new QPushButton("Start", this);
+    rightLayout->addWidget(startButton);
     //TODO rightLayout for some information
 
 
@@ -52,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(&server, SIGNAL(received(void*, int)), this, SLOT(handleReceive(void*, int)));
     QObject::connect(&server, SIGNAL(connected()), this, SLOT(handleConnected()));
     QObject::connect(&client, SIGNAL(received(void*,int)), this, SLOT(handleReceive(void*, int)));
+    QObject::connect(startButton, SIGNAL(clicked()), this, SLOT(startGame()));
 }
 
 void MainWindow::createGame()
@@ -102,8 +105,10 @@ void MainWindow::abortLink()
 void MainWindow::handleClick(QPair<int, int> pos)
 {
     if (isStart) {
+        if (isWaiting) return;
         if (lastPos.first && lastPos.second) {
             if (chessModel.isMovable(player, lastPos, pos)) {
+                isWaiting = 1;
                 statusBar()->showMessage("Waiting");
                 chessModel.movePiece(player, lastPos, pos);
                 chessBoard->changeStatus(chessModel.getStatus(player));
@@ -116,6 +121,12 @@ void MainWindow::handleClick(QPair<int, int> pos)
                     client.sendData(buf, sizeof(ChessModel) + 1);
                 delete buf;
                 lastPos = qMakePair(0, 0);
+                if (chessModel.isWin(player)) {
+                    QMessageBox message;
+                    message.setText("You Win!");
+                    message.exec();
+                    statusBar()->showMessage(QString("You Win!"));
+                }
                 return;
             } else {
                 if (chessModel.isOwner(player, pos)) {
@@ -134,22 +145,65 @@ void MainWindow::handleClick(QPair<int, int> pos)
                 statusBar()->showMessage(QString("Your Turn"));
         }
     } else {
+        if (lastPos.first && lastPos.second) {
+            if (chessModel.isSwapable(player, lastPos, pos)) {
+                chessModel.swapPiece(player, lastPos, pos);
+                lastPos = qMakePair(0, 0);
+                statusBar()->showMessage(QString("Please Organize Your Chess Pieces"));
+                chessBoard->changeStatus(chessModel.getStatus(player));
+            } else {
+                if (chessModel.isOwner(player, pos)) {
+                    lastPos = pos;
+                    statusBar()->showMessage(QString("Select (%1, %2)").arg(pos.first).arg(pos.second));
+                } else {
+                    lastPos = qMakePair(0, 0);
+                    statusBar()->showMessage(QString("Please Organize Your Chess Pieces"));
+                }
+            }
+        } else {
+            if (chessModel.isOwner(player, pos)) {
+                lastPos = pos;
+                statusBar()->showMessage(QString("Select (%1, %2)").arg(pos.first).arg(pos.second));
+            } else {
+                lastPos = qMakePair(0, 0);
+                statusBar()->showMessage(QString("Please Organize Your Chess Pieces"));
+            }
+        }
     }
 }
 
 void MainWindow::handleReceive(void *bufv, int len)
 {
-    qDebug() << "receive";
     char *buf = (char*)bufv;
-    if (buf[0] == 0 && len == sizeof(ChessModel) + 1) {
-        if (isStart)
+    if (len != sizeof(ChessModel) + 1) return;
+
+    if (buf[0] == 0) {
+        if (isStart) {
             statusBar()->showMessage(QString("Your Trun"));
-        else
-            statusBar()->showMessage(QString("Please Organize Your Chess"));
-        chessModel = *(ChessModel*)(buf + 1);
+            isWaiting = 0;
+        } else
+            statusBar()->showMessage(QString("Please Organize Your Chess Pieces"));
+        memcpy(&chessModel, buf + 1, sizeof(ChessModel));
         chessBoard->changeStatus(chessModel.getStatus(player));
-        delete buf;
+        if (chessModel.isWin('A' + 'B' - player)) {
+            isWaiting = 1;
+            QMessageBox message;
+            message.setText("You Lose!");
+            message.exec();
+            statusBar()->showMessage(QString("You Lose!"));
+        }
+    } else if (buf[0] == 'A' || buf[0] == 'B') {
+        ChessModel now;
+        memcpy(&now, buf + 1, sizeof(ChessModel));
+        chessModel.setStatus(buf[0], now);
+        if (isStart) {
+            isWaiting = 0;
+            statusBar()->showMessage("Your Turn");
+        } else {
+            statusBar()->showMessage("Your Opponent is Ready");
+        }
     }
+    delete buf;
 }
 
 void MainWindow::handleConnected()
@@ -162,6 +216,21 @@ void MainWindow::handleConnected()
     memcpy(buf + 1, &chessModel, sizeof(ChessModel));
     server.sendData(buf, sizeof(ChessModel) + 1);
     delete buf;
-    statusBar()->showMessage(QString("Please Organize Your Chess"));
+    statusBar()->showMessage(QString("Please Organize Your Chess Pieces"));
+}
+
+void MainWindow::startGame()
+{
+    lastPos = qMakePair(0, 0);
+    isStart = 1; isWaiting = 1;
+    char *buf = new char[sizeof(ChessModel) + 1];
+    buf[0] = player;
+    memcpy(buf + 1, &chessModel, sizeof(ChessModel));
+    if (player == 'A')
+        server.sendData(buf, sizeof(ChessModel) + 1);
+    else
+        client.sendData(buf, sizeof(ChessModel) + 1);
+    statusBar()->showMessage("Waiting");
+
 }
 
