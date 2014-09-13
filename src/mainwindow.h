@@ -9,6 +9,9 @@
 #include <QPushButton>
 #include <QMenu>
 #include <QAction>
+#include <QLabel>
+#include "user.h"
+#include "userwidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -22,6 +25,15 @@ class MainWindow : public QMainWindow
     char player;
     QPair<int, int> lastPos;
     bool isStart, isWaiting;
+    User locUser, oppUser;
+    char *u, *i;
+    int lenu, leni, pu, pi;
+    UserWidget *opp, *loc;
+    QLabel *oppName, *locName;
+
+    void serverSend(QByteArray a, char pre);
+    void clientSend(QByteArray a, char pre);
+
 
 public:
     explicit MainWindow(QWidget *parent = 0);
