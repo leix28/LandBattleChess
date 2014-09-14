@@ -10,10 +10,10 @@
 #include <QLabel>
 
 #define TIETIME 180000
-#define BUFSIZE 180000
+#define BUFSIZE 1000
 #define TIELIMIT 50
 
-#define TLE 10
+#define TLE 30
 //sec
 
 void MainWindow::serverSend(QByteArray a, char pre)
@@ -430,6 +430,9 @@ void MainWindow::handleReceive(void *bufv, int len)
         isStart = 0; isWaiting = 1;
         box.exec();
         statusBar()->showMessage("You Win");
+        createAction->setEnabled(1);
+        joinAction->setEnabled(1);
+        abortAction->setEnabled(1);
     }
     delete buf;
 }
