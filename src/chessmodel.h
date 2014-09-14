@@ -21,6 +21,7 @@ class ChessModel
     bool checkPos(int piece, QPair<int, int> pos) const;
 
 public:
+    int count;
     typedef QVector< QPair< QPair<int, int>, int > > ChessStatus;
     ChessModel();
     void initStatus();

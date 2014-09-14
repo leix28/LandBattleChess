@@ -59,6 +59,7 @@ ChessModel::ChessModel()
 }
 
 void ChessModel::initStatus() {
+    count = 0;
     posA[24] = qMakePair(1, 2);
     int p = 23;
     for (int i = 1; i <= 6; i++)
@@ -116,6 +117,10 @@ void ChessModel::movePiece(char player, QPair<int, int> st, QPair<int, int> ed)
     if (player == 'A') {
         int x = getChessId('A', st), y = getChessId('B', ed);
         posA[x] = ed;
+        if (y != -1)
+            count = 0;
+        else
+            count++;
         if (x != -1 && y != -1) {
             if (!win(x, y))
                 posA[x] = qMakePair(0, 0);
@@ -125,6 +130,10 @@ void ChessModel::movePiece(char player, QPair<int, int> st, QPair<int, int> ed)
     } else {
         int x = getChessId('A', ed), y = getChessId('B', st);
         posB[y] = ed;
+        if (x != -1)
+            count = 0;
+        else
+            count ++;
         if (x != -1 && y != -1) {
             if (!win(x, y))
                 posA[x] = qMakePair(0, 0);

@@ -10,6 +10,8 @@
 #include <QMenu>
 #include <QAction>
 #include <QLabel>
+#include <QTimer>
+#include <QLCDNumber>
 #include "user.h"
 #include "userwidget.h"
 
@@ -30,6 +32,10 @@ class MainWindow : public QMainWindow
     int lenu, leni, pu, pi;
     UserWidget *opp, *loc;
     QLabel *oppName, *locName;
+    QPushButton *startButton, *tieButton, *surButton;
+    QLCDNumber *number;
+    QTimer tieTimer, timer;
+    int res;
 
     void serverSend(QByteArray a, char pre);
     void clientSend(QByteArray a, char pre);
@@ -48,6 +54,9 @@ public slots:
     void handleReceive(void* bufv, int len);
     void handleConnected();
     void startGame();
+    void enableTie();
+    void handleTie();
+    void timeOut();
 };
 
 #endif // MAINWINDOW_H
