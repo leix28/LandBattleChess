@@ -147,13 +147,13 @@ void MainWindow::createGame()
         createAction->setEnabled(0);
         joinAction->setEnabled(0);
         abortAction->setEnabled(1);
+        player = 'A';
+        locUser.load();
+        locName->setText(locUser.name);
+        loc->paintImage(locUser.image);
 
     } else
         statusBar()->showMessage("Fail: create");
-    player = 'A';
-    locUser.load();
-    locName->setText(locUser.name);
-    loc->paintImage(locUser.image);
 }
 
 void MainWindow::joinGame()
