@@ -14,6 +14,7 @@
 #include <QLCDNumber>
 #include "user.h"
 #include "userwidget.h"
+#include "myinputdialog.h"
 
 class MainWindow : public QMainWindow
 {

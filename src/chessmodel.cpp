@@ -126,7 +126,7 @@ void ChessModel::movePiece(char player, QPair<int, int> st, QPair<int, int> ed)
             if (!win(x, y))
                 posA[x] = qMakePair(0, 0);
             if (!win(y, x))
-                posB[x] = qMakePair(0, 0);
+                posB[y] = qMakePair(0, 0);
         }
     } else {
         int x = getChessId('A', ed), y = getChessId('B', st);

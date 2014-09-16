@@ -10,7 +10,8 @@ SOURCES         +=  src/main.cpp \
     src/ezsocket.cpp \
     src/guessdialog.cpp \
     src/user.cpp \
-    src/userwidget.cpp
+    src/userwidget.cpp \
+    src/myinputdialog.cpp
 
 HEADERS         += \    
     src/mainwindow.h \
@@ -19,7 +20,8 @@ HEADERS         += \
     src/ezsocket.h \
     src/guessdialog.h \
     src/user.h \
-    src/userwidget.h
+    src/userwidget.h \
+    src/myinputdialog.h
 
 
 LIBS            +=  -stdlib=libc++ -L/usr/lib -L/usr/local/lib

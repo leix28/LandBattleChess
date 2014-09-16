@@ -164,8 +164,9 @@ void MainWindow::joinGame()
     isStart = 0;
     lastPos = qMakePair(0, 0);
 
-    QString ret = QInputDialog::getText(this, QString("IP"), QString("Server IP: "), QLineEdit::Normal, QString("127.0.0.1"));
-            char buf[20];
+    QString ret = MyInputDialog::getIp();
+    qDebug() << ret;
+    char buf[20];
     memset(buf, 0, sizeof(buf));
     for (int i = 0; i < ret.size(); i++)
         buf[i] = ret[i].unicode();
