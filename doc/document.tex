@@ -1,0 +1,63 @@
+
+\documentclass[12pt]{article}
+
+%设置页边距
+\usepackage{geometry}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+%地址链接支持
+\usepackage{hyperref}
+
+%支持分栏
+\usepackage{multicol}
+
+%页眉页脚
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{Land Battle Chess Design Documentation}
+\rhead{徐磊 2013011344}
+
+%设置字体
+\usepackage[no-math]{fontspec}
+\usepackage{xunicode}
+\usepackage{xltxtra}
+\setmainfont[AutoFakeSlant]{Hiragino Sans GB W3}
+
+%设置换行缩进
+\usepackage[indentfirst=false,slantfont,boldfont]{xeCJK}
+\usepackage{indentfirst}
+\setlength{\parindent}{0.9cm}
+
+%行距
+\linespread{1.2}
+
+\begin{document}
+
+\title{Land Battle Chess 设计文档}
+
+\author{徐磊\thanks{\href{mailto:leopard.lie@gmail.com}{leopard.lie@gmail.com}}\quad 2013011344}
+
+\date{2014年9月}
+\maketitle
+
+\section{功能介绍}
+Land Battle Chess是一个支持网络对战的军棋游戏。
+
+\section{设计分析}
+\subsection{网络通信}
+网络通信部分使用socket API，在程序中使用EzServer与EzClient两个类进行了封装。这两个类都支持阻塞的发送消息与多线程的接受消息，利用QT的信号槽机制来实现线程之间的通信。EzServer除了支持收发消息外，还提供了创建监听的函数。EzClient则包括了连接服务器的函数。
+\subsection{棋盘模型}
+棋盘模型是单独的ChessModel类，这个类包括了双方玩家共50个棋子的坐标，以及双方玩家对对方棋子的猜测信息。通过在网络上直接传递ChessModel来实现信息的交互。ChessModel可以根据玩家的信息生成用于绘制的棋盘状态（包括自动旋转棋盘，使得用户位于屏幕的下方）。支持判定胜负，设置初始局面，判断是否可以移动，处理旗子移动等。
+\subsection{棋盘绘制}
+棋盘绘制类ChessBoard继承自QLabel，可以根据棋盘模型生成的绘制数据进行绘制。另外，ChessBoard还监控鼠标点击事件，将对应的旗子坐标以消息的形式发送给控制器。
+\subsection{控制器}
+MainWindow除了包含一个界面用来放置棋盘和其它必要的按钮外，主要的功能是控制器。在Mainwindow中，需要将创建服务器、连接服务器的消息关联到EzServer、EzClient恰当的函数上，根据EzServer、EzClient接收的数据来更新本地的ChessModel，并将ChessModel生成的绘制信息发送给ChessBoard。MainWindow需要处理ChessBoard发送的按键信号，以及自己保存的历史按键信息，来做出正确的操作。另外，MainWindow中还包括一套复杂的计时机制。
+\subsection{其它}
+根据要求，需要实现一个奇怪的输入IP的Dialog，写作MyInputDialog。需要实现用户信息的传递，包装了User类包括ID和图片，UserWidget用于显示User信息。
+\section{通信协议}
+系统自动将服务器端设为玩家A，客户端设为玩家B。一条有效地通信长度永远是sizeof(ChessModel)+1，第一个字符若为A或B，表面A玩家或B玩家走了一步，之后的sizeof(ChessModel)的长度为ChessModel。若第一个字符为a或b，表示A玩家或B玩家完成了棋子的布局，等待开始游戏，之后有一个ChessModel来表明棋盘的状态。若第一个字符为T，表示求和，而第一个字符为t表示同意求和。第一个字符为-1表示认输。
+
+发送用户名和头像的协议，首字母为U表示发送用户名，之后sizeof(ChessModel)的长度为用户名（默认用户名少于该大小，用0补足长度）。首字母为I表示与头像相关的信息，首先发送只包含5个字节有效信息的数据，用0补足长度，该信息的后四位是一个整数表示图片的大小。随后以I开头的若干条数据来发送该图片。
+\section{总结}
+Land Battle Chess基本将数据、图形和控制分开，是程序的耦合性较小。
+\end{document}
